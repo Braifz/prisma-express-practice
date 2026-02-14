@@ -1,61 +1,38 @@
 import { PrismaClient, Prisma } from "./generated/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { faker } from "@faker-js/faker";
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter: pool });
 
+const createPost = () => ({
+  title: faker.lorem.text(),
+  content: faker.lorem.text(),
+  published: true,
+});
+
+const createUser = () => ({
+  name: faker.person.firstName(),
+  email: faker.internet.email(),
+  posts: {
+    create: new Array(Math.floor(Math.random() * 3) + 1)
+      .fill(0)
+      .map(() => createPost()),
+  },
+});
+
 const userData: Prisma.UserCreateInput[] = [
-  {
-    name: "Alice",
-    email: "alice@prisma.io",
-    posts: {
-      create: [
-        {
-          title: "Join the Prisma Discord",
-          content: "https://pris.ly/discord",
-          published: true,
-        },
-      ],
-    },
-  },
-  {
-    name: "Nilu",
-    email: "nilu@prisma.io",
-    posts: {
-      create: [
-        {
-          title: "Follow Prisma on Twitter",
-          content: "https://www.twitter.com/prisma",
-          published: true,
-        },
-      ],
-    },
-  },
-  {
-    name: "Mahmoud",
-    email: "mahmoud@prisma.io",
-    posts: {
-      create: [
-        {
-          title: "Ask a question about Prisma on GitHub",
-          content: "https://www.github.com/prisma/prisma/discussions",
-          published: true,
-        },
-        {
-          title: "Prisma on YouTube",
-          content: "https://pris.ly/youtube",
-        },
-      ],
-    },
-  },
+  createUser(),
+  createUser(),
+  createUser(),
 ];
 
 async function main() {
   console.log(`Start seeding ...`);
 
   // Clear existing data
-  await prisma.post.deleteMany();
-  await prisma.user.deleteMany();
+  // await prisma.post.deleteMany();
+  // await prisma.user.deleteMany();
 
   for (const u of userData) {
     const user = await prisma.user.create({
